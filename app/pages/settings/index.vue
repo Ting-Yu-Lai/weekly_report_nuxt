@@ -26,7 +26,7 @@ async function loadProjects() {
   try {
     await projectStore.fetchProjects()
   } catch {
-    errorMessage.value = '操作失敗，請稍後再試。'
+    errorMessage.value = '專案清單載入失敗，請確認 Laravel API 是否正常。'
   } finally {
     isLoading.value = false
   }
@@ -48,18 +48,21 @@ onMounted(() => {
 
 async function addProject() {
   const name = projectInput.value.trim()
-  projectError.value = '專案載入失敗，請稍後再試。'
+  projectError.value = ''
 
-  if (!name) return
+  if (!name) {
+    projectError.value = '請輸入專案名稱。'
+    return
+  }
   if (projects.value.some((project) => project.name === name)) {
-    projectError.value = '專案載入失敗，請稍後再試。'
+    projectError.value = '已有相同名稱的專案。'
     return
   }
 
   try {
     await projectStore.fetchCreateProject({ name, description: null })
     projectInput.value = ''
-    savedMessage.value = '資料已儲存。'
+    savedMessage.value = '專案已新增。'
   } catch {
     projectError.value = '專案載入失敗，請稍後再試。'
   }
@@ -67,11 +70,24 @@ async function addProject() {
 
 async function addWorkType() {
   const name = workTypeInput.value.trim()
-  if (!name || workTypes.value.includes(name)) return
-  await workTypeStore.fetchCreateWorkType({ name })
-  workTypes.value.push(name)
-  workTypeInput.value = ''
-  savedMessage.value = '資料已儲存。'
+  workTypeError.value = ''
+
+  if (!name) {
+    workTypeError.value = '請輸入工作類型名稱。'
+    return
+  }
+  if (workTypes.value.includes(name)) {
+    workTypeError.value = '已有相同名稱的工作類型。'
+    return
+  }
+
+  try {
+    await workTypeStore.fetchCreateWorkType({ name })
+    workTypeInput.value = ''
+    savedMessage.value = '工作類型已新增。'
+  } catch {
+    workTypeError.value = '工作類型新增失敗，請稍後再試。'
+  }
 }
 
 async function toggleProject(project: Project) {
@@ -79,7 +95,7 @@ async function toggleProject(project: Project) {
     await projectStore.fetchUpdateProjectActive(project.id, {
       is_active: !project.is_active,
     })
-    savedMessage.value = '資料已儲存。'
+    savedMessage.value = `已${project.is_active ? '停用' : '啟用'}專案。`
   } catch {
     projectError.value = '專案載入失敗，請稍後再試。'
   }
@@ -90,7 +106,7 @@ async function deleteProject(project: Project) {
 
   try {
     await projectStore.fetchDeleteProject(project.id)
-    savedMessage.value = '資料已儲存。'
+    savedMessage.value = '專案已刪除。'
   } catch {
     projectError.value = '專案載入失敗，請稍後再試。'
   }
@@ -99,9 +115,9 @@ async function deleteProject(project: Project) {
 async function exportJson() {
   try {
     await dataTransfer.exportData()
-    savedMessage.value = '資料已儲存。'
+    savedMessage.value = '資料已匯出。'
   } catch {
-    savedMessage.value = '資料已儲存。'
+    savedMessage.value = '資料匯出失敗，請確認 Laravel API 是否正常。'
   }
 }
 
@@ -121,7 +137,7 @@ async function importJson(event: Event) {
     await dataTransfer.importData(file)
     await Promise.all([projectStore.fetchProjects(), workTypeStore.fetchWorkTypes()])
     workTypes.value = apiWorkTypes.value.map((workType) => workType.name)
-    savedMessage.value = '資料已儲存。'
+    savedMessage.value = '資料已匯入。'
   } catch (error) {
     savedMessage.value = error instanceof Error
       ? error.message
@@ -141,18 +157,18 @@ async function importJson(event: Event) {
     </header>
 
     <section class="page-intro compact-intro">
-      <p>請依照頁面提示完成操作。</p>
+      <p>管理日誌使用的專案、工作類型，以及資料備份。</p>
       <h1>系統設定</h1>
-      <p>請依照頁面提示完成操作。</p>
+      <p>變更會立即套用到新增日誌與週報。</p>
     </section>
 
     <section class="settings-grid">
       <article class="panel setting-panel setting-wide project-panel">
         <div class="panel-heading">
-          <h2>工作項目</h2>
+          <h2>專案管理</h2>
           <span class="panel-caption">{{ projects.filter((project) => project.is_active).length }} 個啟用專案</span>
         </div>
-        <p>請依照頁面提示完成操作。</p>
+        <p class="panel-help">專案會出現在日誌、待辦事項與成長筆記的選單中。停用後不會出現在新增資料的選單，但既有紀錄仍會保留。</p>
 
         <div v-if="isLoading" class="empty-setting">正在載入專案清單……</div>
         <div v-else-if="errorMessage" class="setting-error">{{ errorMessage }}</div>
@@ -178,33 +194,33 @@ async function importJson(event: Event) {
 
         <p v-if="projectError" class="setting-error">{{ projectError }}</p>
         <form class="inline-form" @submit.prevent="addProject">
-          <input v-model="projectInput" class="text-input" placeholder="請輸入內容" />
-          <button class="button button-secondary">操作</button>
+          <input v-model="projectInput" class="text-input" placeholder="例如：產品改版" aria-label="專案名稱" />
+          <button class="button button-secondary" type="submit">新增專案</button>
         </form>
       </article>
 
       <article class="panel setting-panel setting-wide">
         <div class="panel-heading">
-          <h2>工作項目</h2>
-          <span>工作類型</span>
+          <h2>工作類型</h2>
+          <span>分類標籤</span>
         </div>
-        <p>請依照頁面提示完成操作。</p>
+        <p class="panel-help">工作類型會用來分類每日工作內容，例如「開發」、「會議」或「文件整理」。</p>
         <div class="tag-list">
           <span v-for="workType in workTypes" :key="workType" class="tag tag-green">{{ workType }}</span>
         </div>
         <p v-if="workTypeError" class="setting-error">{{ workTypeError }}</p>
         <form class="inline-form" @submit.prevent="addWorkType">
-          <input v-model="workTypeInput" class="text-input" placeholder="請輸入內容" />
-          <button class="button button-secondary">操作</button>
+          <input v-model="workTypeInput" class="text-input" placeholder="例如：開發" aria-label="工作類型名稱" />
+          <button class="button button-secondary" type="submit">新增工作類型</button>
         </form>
       </article>
 
       <article class="panel setting-panel setting-wide">
         <div class="panel-heading">
-          <h2>工作項目</h2>
+          <h2>資料備份</h2>
           <span>資料備份</span>
         </div>
-        <p>請依照頁面提示完成操作。</p>
+        <p class="panel-help">匯出會下載目前所有工作資料的 JSON 備份；匯入會覆寫目前資料，請先確認檔案內容。</p>
         <div class="setting-actions">
           <input
             ref="importInput"
@@ -213,8 +229,8 @@ async function importJson(event: Event) {
             accept="application/json,.json"
             @change="importJson"
           />
-          <button class="button button-secondary">操作</button>
-          <button class="button button-secondary">操作</button>
+          <button class="button button-secondary" type="button" @click="exportJson">匯出資料</button>
+          <button class="button button-secondary" type="button" @click="chooseImportFile">匯入資料</button>
         </div>
       </article>
 
@@ -223,10 +239,10 @@ async function importJson(event: Event) {
           <div><h2>Gemini API Key</h2></div>
           <span>API 設定</span>
         </div>
-        <p>請依照頁面提示完成操作。</p>
+        <p class="panel-help">目前尚未啟用 Gemini API Key 儲存功能。</p>
         <div class="key-row">
-          <input class="text-input" type="password" value="local-key-placeholder" aria-label="Gemini API Key" />
-          <button class="button button-secondary" type="button">儲存設定</button>
+          <input class="text-input" type="password" placeholder="尚未設定" aria-label="Gemini API Key" disabled />
+          <button class="button button-secondary" type="button" disabled>尚未啟用</button>
         </div>
       </article>
     </section>
