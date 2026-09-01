@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { NSelect } from 'naive-ui'
+import { NIcon, NSelect } from 'naive-ui'
+import { AddOutline, TrashBinOutline } from '@vicons/ionicons5'
 
 interface EditableItem { content: string; sort_order: number }
 interface EditableEntry {
@@ -46,7 +47,10 @@ function toEditableEntries(log: DailyLog): EditableEntry[] {
     note: entry.note || '',
     include_in_weekly: entry.include_in_weekly,
     sort_order: entry.sort_order ?? index,
-    items: (entry.items || []).map((item, itemIndex) => ({ content: item.content, sort_order: item.sort_order ?? itemIndex })),
+    items: (entry.items || []).map((item, itemIndex) => ({
+      content: item.content,
+      sort_order: item.sort_order ?? itemIndex,
+    })),
   }))
 }
 
@@ -102,7 +106,7 @@ onMounted(loadData)
         <span v-if="savedMessage" class="save-status">{{ savedMessage }}</span>
       </div>
     </header>
-    <div v-if="isLoading" class="empty-setting">正在載入每日紀錄……</div>
+    <div v-if="isLoading" class="empty-setting">正在載入日誌……</div>
     <div v-else-if="errorMessage && !entries.length" class="setting-error">{{ errorMessage }}</div>
     <form v-else class="daily-form" @submit.prevent="saveDailyLog">
       <div class="form-toolbar">
@@ -126,11 +130,12 @@ onMounted(loadData)
           <label class="form-field"><span>目前狀態</span><ClientOnly><NSelect v-model:value="entry.status" :options="statusOptions" /></ClientOnly></label>
         </div>
         <div class="items-block">
+          <span class="subheading">工作內容</span>
           <div v-for="(item, itemIndex) in entry.items" :key="itemIndex" class="work-item-row">
             <input v-model="item.content" class="text-input" placeholder="請輸入工作內容" required />
-            <button class="icon-button" type="button" aria-label="移除工作內容" @click="removeItem(entry, itemIndex)">×</button>
+            <button class="icon-button" type="button" aria-label="刪除工作內容" @click="removeItem(entry, itemIndex)"><NIcon size="18"><TrashBinOutline /></NIcon></button>
           </div>
-          <button class="text-button" type="button" @click="addItem(entry)">新增工作內容</button>
+          <button class="add-item-button" type="button" @click="addItem(entry)"><NIcon size="16"><AddOutline /></NIcon><span>新增工作內容</span></button>
         </div>
         <label class="form-field"><span>備註</span><textarea v-model="entry.note" class="text-input textarea-input" placeholder="補充這項工作的說明" /></label>
         <label class="check-field"><input v-model="entry.include_in_weekly" type="checkbox" /><span>納入週報</span></label>

@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { NIcon, NSelect } from 'naive-ui'
-import { TrashBinOutline } from '@vicons/ionicons5'
+import { AddOutline, TrashBinOutline } from '@vicons/ionicons5'
 
 interface WorkItem {
   content: string
@@ -242,7 +242,10 @@ async function saveDailyLog() {
               <NIcon size="18"><TrashBinOutline /></NIcon>
             </button>
           </div>
-          <button class="text-button" type="button" @click="addItem(entry)">新增工作內容</button>
+          <button class="add-item-button" type="button" @click="addItem(entry)">
+            <NIcon size="16"><AddOutline /></NIcon>
+            <span>新增工作內容</span>
+          </button>
         </div>
 
         <div class="field-grid detail-grid">
