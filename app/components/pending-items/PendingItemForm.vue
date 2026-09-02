@@ -44,7 +44,7 @@ async function loadProjects() {
 }
 
 function submitForm() {
-  formError.value = '請填寫必要欄位。'
+  formError.value = ''
 
   if (!title.value.trim()) {
     formError.value = '請填寫必要欄位。'
