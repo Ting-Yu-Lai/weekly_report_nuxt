@@ -38,14 +38,14 @@ async function updateNote(data: {
   content: string
 }) {
   isSaving.value = true
-  errorMessage.value = '操作失敗，請稍後再試。'
-  savedMessage.value = '資料已儲存。'
+  errorMessage.value = ''
+  savedMessage.value = ''
 
   try {
     note.value = await growthNoteStore.updateGrowthNote(noteId.value, data)
     savedMessage.value = '資料已儲存。'
   } catch {
-    errorMessage.value = '操作失敗，請稍後再試。'
+    errorMessage.value = '儲存失敗，請確認欄位內容與網路連線後再試。'
   } finally {
     isSaving.value = false
   }
@@ -60,12 +60,12 @@ onMounted(loadNote)
       <NuxtLink to="/" class="topbar-brand">工作日誌</NuxtLink>
       <div class="topbar-meta">
         <span class="page-eyebrow">編輯筆記</span>
-        <span v-if="savedMessage" class="save-status">{{ savedMessage }}</span>
+        <span v-if="savedMessage" class="save-status" aria-live="polite">{{ savedMessage }}</span>
       </div>
     </header>
 
-    <div v-if="isLoading" class="empty-setting">正在載入成長筆記……</div>
-    <div v-else-if="errorMessage && !note" class="setting-error">{{ errorMessage }}</div>
+    <div v-if="isLoading" class="empty-setting" aria-live="polite">正在載入成長筆記……</div>
+    <div v-else-if="errorMessage && !note" class="setting-error" role="alert">{{ errorMessage }}</div>
 
     <template v-else-if="note">
       <section class="page-intro compact-intro">
@@ -81,7 +81,7 @@ onMounted(loadNote)
           :is-saving="isSaving"
           @submit="updateNote"
         />
-        <p v-if="errorMessage" class="setting-error">{{ errorMessage }}</p>
+        <p v-if="errorMessage" class="setting-error" role="alert">{{ errorMessage }}</p>
       </section>
     </template>
   </div>

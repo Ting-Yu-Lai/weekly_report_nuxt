@@ -12,7 +12,7 @@ import {
 const route = useRoute()
 
 const navigation = [
-  { label: '工作日誌', caption: 'Daily desk', to: '/', icon: HomeOutline },
+  { label: '首頁', caption: 'Home', to: '/', icon: HomeOutline },
   { label: '工作日誌', caption: '日誌列表', to: '/daily-logs', icon: CalendarOutline },
   { label: '代辦項目', caption: 'Follow-ups', to: '/pending-items', icon: CheckmarkDoneOutline },
   { label: '週報', caption: 'Weekly report', to: '/weekly-reports/history', icon: DocumentTextOutline },

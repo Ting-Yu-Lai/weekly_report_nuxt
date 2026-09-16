@@ -13,9 +13,9 @@ async function createNote(data: {
 
   try {
     const note = await growthNoteStore.createGrowthNote(data)
-    await navigateTo(`/growth-notes/${note.id}`)
+    await navigateTo('/growth-notes')
   } catch {
-    errorMessage.value = '操作失敗，請稍後再試。'
+    errorMessage.value = '新增失敗，請確認欄位內容與網路連線後再試。'
   } finally {
     isSaving.value = false
   }
@@ -30,9 +30,9 @@ async function createNote(data: {
     </header>
 
     <section class="page-intro compact-intro">
-      <p>請依照頁面提示完成操作。</p>
+      <p class="section-kicker">NEW NOTE</p>
       <h1>新增筆記</h1>
-      <p>請依照頁面提示完成操作。</p>
+      <p>把今天學到的內容、遇到的問題與下一步留下來。</p>
     </section>
 
     <section class="panel growth-note-single-panel">
@@ -41,7 +41,7 @@ async function createNote(data: {
         :is-saving="isSaving"
         @submit="createNote"
       />
-      <p v-if="errorMessage" class="setting-error">{{ errorMessage }}</p>
+      <p v-if="errorMessage" class="setting-error" role="alert">{{ errorMessage }}</p>
     </section>
   </div>
 </template>

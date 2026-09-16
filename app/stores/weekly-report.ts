@@ -55,7 +55,7 @@ export const useWeeklyReportStore = defineStore('weekly-report-store', {
         { params },
       )
 
-      this.reports = response.data.data
+      this.reports = Array.isArray(response.data.data) ? response.data.data : []
       return this.reports
     },
 

@@ -1,5 +1,6 @@
 ﻿<script setup lang="ts">
-import { NSelect } from 'naive-ui'
+import { NIcon, NSelect } from 'naive-ui'
+import { ChevronBackOutline, ChevronForwardOutline } from '@vicons/ionicons5'
 
 const dailyLogStore = useDailyLogStore()
 const { dailyLogs } = storeToRefs(dailyLogStore)
@@ -13,6 +14,8 @@ const today = new Date().toISOString().slice(0, 10)
 const filterDate = ref<string | null>(null)
 const filterProjectId = ref('')
 const filterWorkTypeId = ref('')
+const currentPage = ref(1)
+const pageSize = 5
 const projectOptions = computed(() => [
   { label: '全部專案', value: '' },
   ...projects.value.map((project) => ({ label: project.name, value: project.id })),
@@ -56,6 +59,21 @@ const filteredDailyLogs = computed(() => {
   })
 })
 
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredDailyLogs.value.length / pageSize)))
+const pagedDailyLogs = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+
+  return filteredDailyLogs.value.slice(start, start + pageSize)
+})
+
+watch([filterDate, filterProjectId, filterWorkTypeId], () => {
+  currentPage.value = 1
+})
+
+watch(totalPages, (pageCount) => {
+  if (currentPage.value > pageCount) currentPage.value = pageCount
+})
+
 function resetFilters() {
   filterDate.value = null
   filterProjectId.value = ''
@@ -85,7 +103,7 @@ function getRecordTitle(dailyLog: DailyLog) {
 <template>
   <div class="page-wrap">
     <header class="topbar">
-      <NuxtLink to="/" class="topbar-brand">工作日誌</NuxtLink>
+      <AppHomeLink />
       <span class="page-eyebrow">日誌列表</span>
     </header>
 
@@ -128,7 +146,7 @@ function getRecordTitle(dailyLog: DailyLog) {
     </div>
     <section v-else-if="!isLoading && !errorMessage" class="record-list history-list">
       <NuxtLink
-        v-for="dailyLog in filteredDailyLogs"
+        v-for="dailyLog in pagedDailyLogs"
         :key="dailyLog.id"
         :to="`/daily-logs/${dailyLog.id}`"
         class="record-row"
@@ -141,6 +159,34 @@ function getRecordTitle(dailyLog: DailyLog) {
         <span class="text-button">查看 <span>→</span></span>
       </NuxtLink>
     </section>
+
+    <nav
+      v-if="!isLoading && !errorMessage && filteredDailyLogs.length > pageSize"
+      class="pagination"
+      aria-label="日誌列表分頁"
+    >
+      <button
+        type="button"
+        class="button button-secondary button-small"
+        :disabled="currentPage === 1"
+        aria-label="上一頁"
+        title="上一頁"
+        @click="currentPage--"
+      >
+        <NIcon size="17"><ChevronBackOutline /></NIcon>
+      </button>
+      <span>第 {{ currentPage }} / {{ totalPages }} 頁</span>
+      <button
+        type="button"
+        class="button button-secondary button-small"
+        :disabled="currentPage === totalPages"
+        aria-label="下一頁"
+        title="下一頁"
+        @click="currentPage++"
+      >
+        <NIcon size="17"><ChevronForwardOutline /></NIcon>
+      </button>
+    </nav>
   </div>
 </template>
 

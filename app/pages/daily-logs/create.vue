@@ -144,6 +144,25 @@ function validateEntries() {
   return true
 }
 
+function buildCreatePayload() {
+  return {
+    log_date: logDate.value,
+    entries: entries.value.map((entry, entryIndex) => ({
+      project_id: entry.project_id,
+      work_type_id: entry.work_type_id,
+      status: entry.status,
+      custom_status: entry.custom_status,
+      note: entry.note,
+      include_in_weekly: entry.include_in_weekly,
+      sort_order: entry.sort_order ?? entryIndex,
+      items: entry.items.map((item, itemIndex) => ({
+        content: item.content,
+        sort_order: item.sort_order ?? itemIndex,
+      })),
+    })),
+  }
+}
+
 async function saveDailyLog() {
   saveState.value = 'saving'
   errorMessage.value = ''
@@ -154,10 +173,7 @@ async function saveDailyLog() {
   }
 
   try {
-    await $axios.post('/api/daily-logs', {
-      log_date: logDate.value,
-      entries: entries.value,
-    })
+    await $axios.post('/api/daily-logs', buildCreatePayload())
     saveState.value = 'saved'
   } catch (error) {
     saveState.value = 'error'

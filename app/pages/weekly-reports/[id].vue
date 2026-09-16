@@ -108,7 +108,7 @@ async function loadReport() {
       weeklyReportStore.report!.week_end,
     )
     weeklySummary.value = weeklyReportStore.report!.weekly_summary || ''
-    reportContent.value = buildMarkdown()
+    reportContent.value = weeklyReportStore.report!.content || buildMarkdown()
   } catch {
     errorMessage.value = '載入週報失敗，請稍後再試。'
   } finally {
@@ -173,7 +173,7 @@ onMounted(loadReport)
         <textarea
           v-model="reportContent"
           class="weekly-editor"
-          aria-label="刪除"
+          aria-label="週報內容"
         />
 
         <div class="weekly-section">

@@ -52,7 +52,9 @@ export const useGrowthNoteStore = defineStore('growth-note-store', {
         data,
       )
 
-      return response.data.data as GrowthNote
+      const note = response.data.data as GrowthNote
+      this.notes = [note, ...this.notes]
+      return note
     },
 
     async updateGrowthNote(
@@ -64,11 +66,33 @@ export const useGrowthNoteStore = defineStore('growth-note-store', {
         data,
       )
 
-      return response.data.data as GrowthNote
+      const note = response.data.data as GrowthNote
+      this.replaceNoteInList(note)
+      return note
     },
 
     async deleteGrowthNote(id: string) {
       await useNuxtApp().$axios.delete(`/api/growth-notes/${id}`)
+      this.removeNoteFromList(id)
+    },
+
+    replaceNoteInList(note: GrowthNote) {
+      const index = this.notes.findIndex((item) => item.id === note.id)
+
+      if (index === -1) {
+        this.notes = [note, ...this.notes]
+        return
+      }
+
+      this.notes[index] = note
+      this.notes = [...this.notes].sort((left, right) => {
+        const dateDifference = right.note_date.localeCompare(left.note_date)
+        return dateDifference || (right.updated_at || '').localeCompare(left.updated_at || '')
+      })
+    },
+
+    removeNoteFromList(id: string) {
+      this.notes = this.notes.filter((note) => note.id !== id)
     },
   },
 })

@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { NIcon, NSelect } from 'naive-ui'
-import { TrashBinOutline } from '@vicons/ionicons5'
+import { ArrowUndoOutline, CheckmarkCircleOutline, CreateOutline, TrashBinOutline } from '@vicons/ionicons5'
 
 const pendingItemStore = usePendingItemStore()
 const projectStore = useProjectStore()
@@ -78,7 +78,7 @@ onMounted(() => {
 <template>
   <div class="page-wrap pending-page">
     <header class="topbar">
-      <NuxtLink to="/" class="topbar-brand">工作日誌</NuxtLink>
+      <AppHomeLink />
       <span class="page-eyebrow">代辦項目</span>
     </header>
 
@@ -104,7 +104,7 @@ onMounted(() => {
           <NSelect v-model:value="projectFilter" class="filter-select" :options="projectOptions" />
         </ClientOnly>
       </label>
-      <button class="button button-secondary" type="button" @click="loadItems">套用篩選</button>
+      <button class="button button-secondary" type="button" @click="loadItems">篩選</button>
     </section>
 
     <section class="content-section pending-content-section">
@@ -135,11 +135,28 @@ onMounted(() => {
             <small>建立於 {{ formatDate(item.created_at) }}</small>
           </div>
           <div class="pending-card-actions">
-            <button type="button" class="button button-small" @click="toggleStatus(item)">
-              {{ item.status === 0 ? '標記為完成' : '改回待處理' }}
+            <button
+              type="button"
+              class="icon-button status-action-button"
+              :class="item.status === 0 ? 'is-pending' : 'is-resolved'"
+              :aria-label="item.status === 0 ? '標記為完成' : '改回待處理'"
+              :title="item.status === 0 ? '標記為完成' : '改回待處理'"
+              @click="toggleStatus(item)"
+            >
+              <NIcon size="18">
+                <CheckmarkCircleOutline v-if="item.status === 0" />
+                <ArrowUndoOutline v-else />
+              </NIcon>
             </button>
-            <NuxtLink :to="`/pending-items/${item.id}`" class="button button-secondary">編輯</NuxtLink>
-            <button class="delete-button" type="button" aria-label="刪除代辦項目" @click="deleteItem(item)">
+            <NuxtLink
+              :to="`/pending-items/${item.id}`"
+              class="icon-button edit-button"
+              aria-label="編輯代辦項目"
+              title="編輯代辦項目"
+            >
+              <NIcon size="18"><CreateOutline /></NIcon>
+            </NuxtLink>
+            <button class="delete-button" type="button" aria-label="刪除代辦項目" title="刪除代辦項目" @click="deleteItem(item)">
               <NIcon size="18"><TrashBinOutline /></NIcon>
             </button>
           </div>
